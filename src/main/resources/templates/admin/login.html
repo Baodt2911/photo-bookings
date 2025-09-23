@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet" />
+  </head>
+  <body class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+        Đăng nhập Admin
+      </h2>
+
+      <!-- Form -->
+      <form th:action="@{/auth/login}" method="post" class="space-y-5">
+        <!-- Thông báo thành công -->
+        <div
+          id="success-message"
+          th:if="${success}"
+          class="flex items-center space-x-2 bg-green-50 p-3 rounded-lg border border-green-300 transition-all duration-300 ease-in-out"
+        >
+          <!-- Biểu tượng thành công (inline SVG) -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 text-green-500 flex-shrink-0"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span class="text-sm text-green-700" th:text="${success}"
+            >Đăng xuất thành công!</span
+          >
+        </div>
+
+        <!-- Thông báo lỗi -->
+        <div
+          id="error-message"
+          th:if="${error}"
+          class="flex items-center space-x-2 bg-red-50 p-3 rounded-lg border border-red-300 transition-all duration-300 ease-in-out"
+        >
+          <!-- Biểu tượng cảnh báo (inline SVG) -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 text-red-500 flex-shrink-0"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-2-9a1 1 0 011 1v4a1 1 0 11-2 0V6a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span class="text-red-700 text-sm font-medium"> [[${error}]] </span>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-gray-700 font-medium mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <!-- Mật khẩu -->
+        <div>
+          <label for="password" class="block text-gray-700 font-medium mb-1">
+            Mật khẩu
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <!-- Nút Đăng nhập -->
+        <button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+        >
+          Đăng nhập
+        </button>
+      </form>
+
+      <!-- Link Đăng ký -->
+      <p class="text-center text-gray-600 mt-6 text-sm">
+        Chưa có tài khoản?
+        <a
+          th:href="@{/admin/register}"
+          class="text-blue-600 hover:underline font-medium"
+        >
+          Đăng ký
+        </a>
+      </p>
+    </div>
+  </body>
+</html>

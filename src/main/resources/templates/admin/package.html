@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{admin/layout/admin-layout}"
+>
+  <head>
+    <title>Quản lý Gói Chụp Ảnh - Admin</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet" />
+    <script src="/js/admin/package-management.js"></script>
+  </head>
+  <body>
+    <div layout:fragment="content">
+      <!-- Page Header -->
+      <div class="mb-6">
+        <div class="mb-8">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">
+                Quản lý Gói Chụp Ảnh
+              </h1>
+              <p class="text-gray-600 mt-2">
+                Quản lý các gói chụp ảnh và dịch vụ
+              </p>
+            </div>
+            <div class="flex space-x-3">
+              <button
+                onclick="openPackageModal()"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <i class="fas fa-plus"></i>
+                <span>Thêm Gói Mới</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Tổng Gói</p>
+                <p
+                  class="text-2xl font-bold text-gray-900"
+                  th:text="${totalPackages ?: 0}"
+                >
+                  12
+                </p>
+              </div>
+              <div
+                class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-box text-blue-600"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Gói Hoạt Động</p>
+                <p
+                  class="text-2xl font-bold text-gray-900"
+                  th:text="${activePackages ?: 0}"
+                >
+                  10
+                </p>
+              </div>
+              <div
+                class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-check-circle text-green-600"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Gói Tạm Dừng</p>
+                <p
+                  class="text-2xl font-bold text-gray-900"
+                  th:text="${totalPackages - activePackages ?: 0}"
+                >
+                  2
+                </p>
+              </div>
+              <div
+                class="h-12 w-12 bg-yellow-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-pause-circle text-yellow-600"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Doanh Thu Tháng</p>
+                <p class="text-2xl font-bold text-gray-900">₫45.2M</p>
+              </div>
+              <div
+                class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-money-bill-wave text-purple-600"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <span class="text-green-600 text-sm font-medium"
+                >+8% từ tháng trước</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Search and Filter Form -->
+        <div
+          class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100"
+        >
+          <form
+            method="GET"
+            action="/admin/packages"
+            class="flex flex-wrap items-center gap-4"
+          >
+            <div class="flex-1 min-w-64">
+              <input
+                type="text"
+                name="search"
+                placeholder="Tìm kiếm gói chụp ảnh..."
+                th:value="${param.search}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              />
+            </div>
+            <select
+              name="status"
+              class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="true" th:selected="${param.status == 'true'}">
+                Hoạt động
+              </option>
+              <option value="false" th:selected="${param.status == 'false'}">
+                Tạm dừng
+              </option>
+            </select>
+            <select
+              name="sort"
+              class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="name" th:selected="${param.sort == 'name'}">
+                Tên A-Z
+              </option>
+              <option
+                value="name_desc"
+                th:selected="${param.sort == 'name_desc'}"
+              >
+                Tên Z-A
+              </option>
+              <option value="price" th:selected="${param.sort == 'price'}">
+                Giá tăng dần
+              </option>
+              <option
+                value="price_desc"
+                th:selected="${param.sort == 'price_desc'}"
+              >
+                Giá giảm dần
+              </option>
+              <option
+                value="created_at"
+                th:selected="${param.sort == 'created_at'}"
+              >
+                Mới nhất
+              </option>
+            </select>
+            <a
+              href="/admin/packages"
+              class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              <i class="fas fa-times mr-2"></i>Xóa bộ lọc
+            </a>
+          </form>
+        </div>
+
+        <!-- Packages Table -->
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        >
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Gói
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Mô tả
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Giá
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Thời gian
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Trạng thái
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr
+                  th:each="package : ${packages}"
+                  class="hover:bg-gray-50 transition-colors"
+                >
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div
+                        class="h-12 w-12 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center"
+                      >
+                        <img
+                          th:if="${package.imageUrl}"
+                          th:src="${package.imageUrl}"
+                          th:alt="${package.name}"
+                          class="w-full h-full object-cover rounded-lg"
+                        />
+                        <i
+                          th:unless="${package.imageUrl}"
+                          class="fas fa-camera text-white"
+                        ></i>
+                      </div>
+                      <div class="ml-4">
+                        <div
+                          class="text-sm font-medium text-gray-900"
+                          th:text="${package.name}"
+                        >
+                          Gói Cá Nhân Premium
+                        </div>
+                        <div
+                          class="text-sm text-gray-500"
+                          th:text="${package.slug}"
+                        >
+                          ca-nhan-premium
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div
+                      class="text-sm text-gray-900 max-w-xs truncate"
+                      th:text="${package.description}"
+                    >
+                      Gói chụp ảnh cá nhân cao cấp với nhiều lựa chọn trang phục
+                      và địa điểm
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div
+                      class="text-sm font-medium text-gray-900"
+                      th:text="${#numbers.formatDecimal(package.price, 0, 'COMMA', 0, 'POINT') + '₫'}"
+                    >
+                      2,500,000₫
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div
+                      class="text-sm text-gray-900"
+                      th:text="${package.durationMinutes + ' phút'}"
+                    >
+                      90 phút
+                    </div>
+                    <div
+                      class="text-sm text-gray-500"
+                      th:text="${'Tối đa ' + package.maxPeople + ' người'}"
+                    >
+                      Tối đa 2 người
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      th:class="${package.active ? 'bg-green-100 text-green-800 px-2 inline-flex text-xs leading-5 font-semibold rounded-full' : 'bg-red-100 text-red-800 px-2 inline-flex text-xs leading-5 font-semibold rounded-full'}"
+                    >
+                      <span
+                        th:text="${package.active ? 'Hoạt động' : 'Tạm dừng'}"
+                        >Hoạt động</span
+                      >
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex gap-4">
+                      <button
+                        onclick="editPackage(this.dataset.packageId)"
+                        th:data-package-id="${package.id}"
+                        class="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded transition-colors"
+                        title="Chỉnh sửa"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        onclick="togglePackageStatus(this.dataset.packageId)"
+                        th:data-package-id="${package.id}"
+                        th:class="${package.active ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50' : 'text-green-600 hover:text-green-900 hover:bg-green-50'}"
+                        class="p-1 rounded transition-colors"
+                        th:title="${package.active ? 'Tạm dừng' : 'Kích hoạt'}"
+                      >
+                        <i
+                          th:class="${package.active ? 'fas fa-pause' : 'fas fa-play'}"
+                        ></i>
+                      </button>
+                      <button
+                        onclick="deletePackage(this.dataset.packageId)"
+                        th:data-package-id="${package.id}"
+                        class="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-colors"
+                        title="Xóa"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
+          >
+            <div class="flex-1 flex justify-between sm:hidden">
+              <!-- Mobile Previous -->
+              <a
+                th:if="${packages.hasPrevious()}"
+                th:href="@{/admin/packages(search=${param.search}, status=${param.status}, sort=${param.sort}, page=${packages.number})}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <i class="fas fa-chevron-left mr-1"></i>Trước
+              </a>
+              <span
+                th:unless="${packages.hasPrevious()}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed"
+              >
+                <i class="fas fa-chevron-left mr-1"></i>Trước
+              </span>
+
+              <!-- Mobile Page Info -->
+              <span class="text-sm text-gray-700 self-center">
+                Trang
+                <span class="font-medium" th:text="${packages.number + 1}"
+                  >1</span
+                >
+                /
+                <span class="font-medium" th:text="${packages.totalPages}"
+                  >1</span
+                >
+              </span>
+
+              <!-- Mobile Next -->
+              <a
+                th:if="${packages.hasNext()}"
+                th:href="@{/admin/packages(search=${param.search}, status=${param.status}, sort=${param.sort}, page=${packages.number + 2})}"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Sau<i class="fas fa-chevron-right ml-1"></i>
+              </a>
+              <span
+                th:unless="${packages.hasNext()}"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed"
+              >
+                Sau<i class="fas fa-chevron-right ml-1"></i>
+              </span>
+            </div>
+
+            <div
+              class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+            >
+              <div>
+                <p class="text-sm text-gray-700">
+                  Hiển thị
+                  <span
+                    class="font-medium"
+                    th:text="${packages.number * packages.size + 1}"
+                    >1</span
+                  >
+                  đến
+                  <span
+                    class="font-medium"
+                    th:text="${packages.number * packages.size + packages.numberOfElements}"
+                    >10</span
+                  >
+                  của
+                  <span class="font-medium" th:text="${packages.totalElements}"
+                    >0</span
+                  >
+                  kết quả
+                </p>
+              </div>
+              <div>
+                <nav
+                  class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                >
+                  <!-- Previous Button -->
+                  <a
+                    th:if="${packages.hasPrevious()}"
+                    th:href="@{/admin/packages(search=${param.search}, status=${param.status}, sort=${param.sort}, page=${packages.number})}"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    <i class="fas fa-chevron-left"></i>
+                  </a>
+                  <span
+                    th:unless="${packages.hasPrevious()}"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"
+                  >
+                    <i class="fas fa-chevron-left"></i>
+                  </span>
+
+                  <!-- Page Numbers -->
+                  <th:block
+                    th:each="pageNum : ${#numbers.sequence(0, packages.totalPages - 1)}"
+                  >
+                    <a
+                      th:if="${pageNum != packages.number}"
+                      th:href="@{/admin/packages(search=${param.search}, status=${param.status}, sort=${param.sort}, page=${pageNum + 1})}"
+                      class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      th:text="${pageNum + 1}"
+                      >1</a
+                    >
+                    <span
+                      th:if="${pageNum == packages.number}"
+                      class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-600"
+                      th:text="${pageNum + 1}"
+                      >1</span
+                    >
+                  </th:block>
+
+                  <!-- Next Button -->
+                  <a
+                    th:if="${packages.hasNext()}"
+                    th:href="@{/admin/packages(search=${param.search}, status=${param.status}, sort=${param.sort}, page=${packages.number + 2})}"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    <i class="fas fa-chevron-right"></i>
+                  </a>
+                  <span
+                    th:unless="${packages.hasNext()}"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"
+                  >
+                    <i class="fas fa-chevron-right"></i>
+                  </span>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Package Modal -->
+      <div
+        id="packageModal"
+        class="fixed inset-0 overflow-y-auto h-full w-full hidden z-50"
+        style="background-color: rgba(0, 0, 0, 0.5)"
+      >
+        <div
+          class="relative top-5 mx-auto p-5 w-full max-w-4xl shadow-2xl rounded-2xl bg-white"
+        >
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">
+              Thêm Gói Mới
+            </h3>
+            <button
+              onclick="closePackageModal()"
+              class="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6">
+            <form
+              id="packageForm"
+              class="space-y-6"
+              enctype="multipart/form-data"
+            >
+              <!-- Main Content Grid -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left Column - Form Fields -->
+                <div class="space-y-6">
+                  <!-- Basic Information -->
+                  <div class="space-y-4">
+                    <h4
+                      class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2"
+                    >
+                      Thông tin cơ bản
+                    </h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          class="block text-sm font-medium text-gray-700 mb-2"
+                          >Tên gói *</label
+                        >
+                        <input
+                          type="text"
+                          id="packageName"
+                          name="name"
+                          required
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          class="block text-sm font-medium text-gray-700 mb-2"
+                          >Slug *</label
+                        >
+                        <input
+                          type="text"
+                          id="packageSlug"
+                          name="slug"
+                          required
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                        >Mô tả</label
+                      >
+                      <textarea
+                        id="packageDescription"
+                        name="description"
+                        rows="3"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                        >Bao gồm</label
+                      >
+                      <textarea
+                        id="packageIncludes"
+                        name="includes"
+                        rows="3"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                        placeholder="Ví dụ: 50 ảnh đã chỉnh sửa, 2 trang phục, 1 địa điểm..."
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Pricing & Details -->
+                  <div class="space-y-4">
+                    <h4
+                      class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2"
+                    >
+                      Giá cả & Chi tiết
+                    </h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          class="block text-sm font-medium text-gray-700 mb-2"
+                          >Giá (₫) *</label
+                        >
+                        <input
+                          type="number"
+                          id="packagePrice"
+                          name="price"
+                          required
+                          min="0"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          class="block text-sm font-medium text-gray-700 mb-2"
+                          >Thời gian (phút) *</label
+                        >
+                        <input
+                          type="number"
+                          id="packageDuration"
+                          name="durationMinutes"
+                          required
+                          min="60"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                        >Số người tối đa *</label
+                      >
+                      <input
+                        type="number"
+                        id="packageMaxPeople"
+                        name="maxPeople"
+                        required
+                        min="1"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Column - Image Upload -->
+                <div class="space-y-6">
+                  <div class="space-y-4">
+                    <h4
+                      class="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2"
+                    >
+                      Hình ảnh
+                    </h4>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-3"
+                        >Ảnh đại diện</label
+                      >
+                      <div
+                        id="imageUpload"
+                        class="mt-1 flex justify-center px-6 pt-6 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors"
+                      >
+                        <div class="space-y-3 text-center">
+                          <div class="mx-auto h-12 w-12 text-gray-400">
+                            <i class="fas fa-cloud-upload-alt text-3xl"></i>
+                          </div>
+                          <div class="text-sm text-gray-600">
+                            <label
+                              for="packageImage"
+                              class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                            >
+                              <span>Tải lên ảnh</span>
+                              <input
+                                id="packageImage"
+                                name="image"
+                                type="file"
+                                accept="image/*"
+                                class="sr-only"
+                                onchange="previewImage(this)"
+                              />
+                            </label>
+                          </div>
+                          <p class="text-xs text-gray-500">PNG, JPG, GIF</p>
+                          <p class="text-xs text-gray-500">Lên đến 10MB</p>
+                        </div>
+                      </div>
+
+                      <!-- Image Preview -->
+                      <div id="imagePreview" class="mt-4 hidden">
+                        <img
+                          id="previewImg"
+                          src=""
+                          alt="Preview"
+                          class="w-full h-64 object-cover rounded-lg border border-gray-300 shadow-sm"
+                        />
+                        <div class="mt-3 flex justify-center">
+                          <button
+                            type="button"
+                            onclick="removeImage()"
+                            class="text-sm text-red-600 hover:text-red-500 bg-red-50 px-3 py-1 rounded-md hover:bg-red-100 transition-colors"
+                          >
+                            <i class="fas fa-trash mr-1"></i>Xóa ảnh
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal Footer -->
+              <div
+                class="flex justify-end space-x-3 pt-6 border-t border-gray-200"
+              >
+                <button
+                  type="button"
+                  onclick="closePackageModal()"
+                  class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  <i class="fas fa-times mr-2"></i>Hủy
+                </button>
+                <button
+                  type="submit"
+                  class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  <i class="fas fa-save mr-2"></i>Lưu
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{admin/layout/admin-layout}"
+>
+  <head>
+    <title>Dashboard - Admin</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet" />
+  </head>
+  <body>
+    <div layout:fragment="content">
+      <!-- Page Header -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p class="text-gray-600 mt-1">Tổng quan về hệ thống Photo Booking</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Total Bookings -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Tổng Booking</p>
+              <p
+                class="text-2xl font-bold text-gray-900"
+                th:text="${bookingCount ?: 0}"
+              >
+                0
+              </p>
+            </div>
+            <div
+              class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-calendar-alt text-blue-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Packages -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Gói chụp ảnh</p>
+              <p
+                class="text-2xl font-bold text-gray-900"
+                th:text="${packageCount ?: 0}"
+              >
+                0
+              </p>
+            </div>
+            <div
+              class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-box text-green-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Albums -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Albums</p>
+              <p
+                class="text-2xl font-bold text-gray-900"
+                th:text="${albumCount ?: 0}"
+              >
+                0
+              </p>
+            </div>
+            <div
+              class="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-images text-purple-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Doanh thu tháng</p>
+              <p class="text-2xl font-bold text-gray-900">₫45.2M</p>
+            </div>
+            <div
+              class="h-10 w-10 bg-yellow-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-money-bill-wave text-yellow-600"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Bookings -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">Booking gần đây</h2>
+            <a
+              th:href="@{/admin/bookings}"
+              class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Xem tất cả
+            </a>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Khách hàng
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Gói
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Ngày đặt
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Trạng thái
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr th:each="booking : ${bookings}" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div
+                      class="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center"
+                    >
+                      <span
+                        class="text-white font-medium text-sm"
+                        th:text="${booking.name.substring(0,1).toUpperCase()}"
+                        >N</span
+                      >
+                    </div>
+                    <div class="ml-3">
+                      <div
+                        class="text-sm font-medium text-gray-900"
+                        th:text="${booking.name}"
+                      >
+                        Nguyen Van A
+                      </div>
+                      <div
+                        class="text-sm text-gray-500"
+                        th:text="${booking.email}"
+                      >
+                        nguyenvana@example.com
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="text-sm font-medium text-gray-900"
+                    th:text="${booking.packageField?.name ?: 'N/A'}"
+                  >
+                    Wedding
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="text-sm text-gray-900"
+                    th:text="${#temporals.format(booking.bookingDate, 'dd/MM/yyyy HH:mm')}"
+                  >
+                    2025-09-19 14:30
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    th:class="${booking.status == 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                               booking.status == 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                                               'bg-red-100 text-red-800'}
+                                               px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  >
+                    <span
+                      th:text="${booking.status == 'PENDING' ? 'Chờ xác nhận' :
+                                                   booking.status == 'CONFIRMED' ? 'Đã xác nhận' :
+                                                   'Đã hủy'}"
+                      >Pending</span
+                    >
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

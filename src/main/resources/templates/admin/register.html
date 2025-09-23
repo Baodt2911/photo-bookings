@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Register</title>
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet" />
+  </head>
+  <body class="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div class="w-full max-w-md bg-white shadow-md rounded-xl p-8">
+      <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">
+        Đăng ký Admin
+      </h2>
+
+      <form th:action="@{/auth/register}" method="post" class="space-y-4">
+          <div
+          id="error-message"
+          th:if="${error}"
+          class="flex items-center space-x-2 bg-red-50 p-3 rounded-lg border border-red-300 transition-all duration-300 ease-in-out"
+          >
+          <!-- Biểu tượng cảnh báo (inline SVG) -->
+          <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 text-red-500 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          >
+          <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-2-9a1 1 0 011 1v4a1 1 0 11-2 0V6a1 1 0 011-1z"
+          clip-rule="evenodd"
+            />
+          </svg>
+          <span class="text-red-700 text-sm font-medium">
+        [[${error}]]
+          </span>
+          </div>
+
+        <!-- Họ tên -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Họ tên
+          </label>
+          <input
+            type="text"
+            name="name"
+            required
+            class="w-full rounded-lg border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            required
+            class="w-full rounded-lg border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Mật khẩu -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Mật khẩu
+          </label>
+          <input
+            type="password"
+            name="password"
+            required
+            class="w-full rounded-lg border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Nút đăng ký -->
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition"
+        >
+          Đăng ký
+        </button>
+      </form>
+
+      <p class="text-center text-sm text-gray-600 mt-4">
+        Đã có tài khoản?
+        <a
+          th:href="@{/admin/login}"
+          class="text-blue-600 hover:underline font-medium"
+        >
+          Đăng nhập
+        </a>
+      </p>
+    </div>
+  </body>
+</html>
