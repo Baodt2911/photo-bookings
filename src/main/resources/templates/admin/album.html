@@ -87,59 +87,66 @@
 
             <!-- Existing Albums -->
             <div
-              th:each="album : ${albums.content}"
+              th:each="album : ${albums != null ? albums.content : null}"
+              th:data-album-id="${album != null ? album.id : ''}"
               class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+              onclick="goToAlbum(this)"
             >
-              <div class="aspect-square relative overflow-hidden rounded-t-xl">
+              <div class="aspect-square relative overflow-hidden rounded-xl">
                 <!-- Album Cover Image -->
+                <!-- Cover Image -->
                 <div
-                  th:if="${album.photos != null && !album.photos.isEmpty()}"
-                  class="w-full h-full bg-cover bg-center"
-                  th:style="'background-image: url(' + ${album.photos[0].url} + ')'"
-                ></div>
-                <!-- Default Image -->
-                <div
-                  th:unless="${album.photos != null && !album.photos.isEmpty()}"
-                  class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center"
+                  th:if="${album != null && album.coverPhotoUrl != null}"
+                  class="w-full h-full bg-cover bg-center relative"
+                  th:style="'background-image: url(' + ${album.coverPhotoUrl} + ')'"
                 >
-                  <i class="fas fa-images text-white text-4xl"></i>
-                </div>
-              </div>
+                  <!-- Overlay for text -->
+                  <div
+                    class="absolute w-full h-full inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"
+                  ></div>
 
-              <!-- Album Info -->
-              <div class="p-4">
-                <h3
-                  class="text-lg font-medium text-gray-900 mb-1"
-                  th:text="${album.name}"
-                >
-                  Album Name
-                </h3>
-                <p
-                  class="text-sm text-gray-500 mb-3"
-                  th:text="${#temporals.format(album.createdAt, 'dd-MM-yyyy')}"
-                >
-                  Ngày tạo: 22-09-2025
-                </p>
-
-                <!-- Album Stats -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-4">
-                    <div class="flex items-center text-gray-500">
-                      <i class="fas fa-heart mr-1"></i>
-                      <span class="text-sm">0</span>
-                    </div>
-                    <div class="flex items-center text-gray-500">
-                      <i class="fas fa-comment mr-1"></i>
-                      <span class="text-sm">0</span>
-                    </div>
-                  </div>
-                  <div class="relative">
-                    <button
-                      class="text-gray-400 hover:text-gray-600 transition-colors"
-                      onclick="event.stopPropagation(); showAlbumMenu(event, '${album.id}')"
+                  <!-- Album Info Overlay -->
+                  <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <h3
+                      class="text-lg font-bold mb-1"
+                      th:text="${album != null ? album.name : 'Album Name'}"
                     >
-                      <i class="fas fa-ellipsis-h"></i>
-                    </button>
+                      Album Name
+                    </h3>
+                    <p
+                      class="text-sm opacity-90 mb-3"
+                      th:text="${album != null ? #temporals.format(album.createdAt, 'dd-MM-yyyy') : 'Ngày tạo: 22-09-2025'}"
+                    >
+                      Ngày tạo: 22-09-2025
+                    </p>
+
+                    <!-- Album Stats -->
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                          <i class="fas fa-heart mr-1"></i>
+                          <span
+                            class="text-sm"
+                            th:text="${album != null ? album.favoriteCount : 0}"
+                            >0</span
+                          >
+                        </div>
+                        <div class="flex items-center">
+                          <i class="fas fa-comment mr-1"></i>
+                          <span
+                            class="text-sm"
+                            th:text="${album != null ? album.commentCount : 0}"
+                            >0</span
+                          >
+                        </div>
+                      </div>
+                      <button
+                        class="text-white/80 hover:text-white transition-colors"
+                        onclick="event.stopPropagation(); const albumCard = this.closest('[data-album-id]'); if (albumCard) showAlbumMenu(event, albumCard.dataset.albumId)"
+                      >
+                        <i class="fas fa-ellipsis-h"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -151,17 +158,23 @@
       <!-- Album Actions Dropdown -->
       <div
         id="albumMenuDropdown"
-        class="fixed z-50 hidden bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-32"
+        class="fixed z-50 hidden bg-white rounded-lg shadow-lg py-1 min-w-32"
       >
         <button
-          id="editAlbumBtn"
-          class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+          onclick="editAlbum(currentAlbumId)"
+          class="w-full px-4 py-2 text-left text-sm text-black flex items-center"
         >
           <i class="fas fa-edit mr-2"></i>Chỉnh sửa
         </button>
         <button
-          id="deleteAlbumBtn"
-          class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+          onclick="shareAlbum(currentAlbumId)"
+          class="w-full px-4 py-2 text-left text-sm text-black flex items-center"
+        >
+          <i class="fas fa-share mr-2"></i>Chia sẻ
+        </button>
+        <button
+          onclick="deleteAlbum(currentAlbumId)"
+          class="w-full px-4 py-2 text-left text-sm text-red-400 flex items-center"
         >
           <i class="fas fa-trash mr-2"></i>Xóa
         </button>
@@ -195,7 +208,6 @@
                 Hủy
               </button>
               <button
-                id="confirmDeleteBtn"
                 onclick="confirmDelete()"
                 class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
@@ -238,15 +250,61 @@
                   class="block text-sm font-medium text-gray-700 mb-2"
                 >
                   <span class="text-red-500">*</span> Link ảnh Google Drive
+                  <i
+                    class="fas fa-question-circle text-gray-400 ml-1 cursor-help"
+                    title="Nhập link thư mục Google Drive chứa ảnh"
+                  ></i>
                 </label>
-                <input
-                  type="url"
-                  id="albumDriveFolderLink"
-                  name="driveFolderLink"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Link Google Drive thư mục chứa ảnh vào đây"
-                />
+                <div
+                  class="relative flex items-center w-full h-10 pr-16 border border-gray-300 rounded-lg"
+                >
+                  <input
+                    type="url"
+                    id="albumDriveFolderLink"
+                    name="driveFolderLink"
+                    required
+                    class="w-full h-full px-4 rounded-lg outline-none"
+                    placeholder="https://drive.google.com/drive/folders/..."
+                  />
+                  <!-- Error Icon -->
+                  <div id="driveErrorIcon" class="px-2 hidden">
+                    <i class="fas fa-exclamation-circle text-red-500"></i>
+                  </div>
+
+                  <!-- Success Icon -->
+                  <div id="driveSuccessIcon" class="px-2 hidden">
+                    <i class="fas fa-check-circle text-green-500"></i>
+                  </div>
+
+                  <!-- Loading Icon -->
+                  <div id="driveLoadingIcon" class="px-2 hidden">
+                    <i class="fas fa-spinner fa-spin text-blue-500"></i>
+                  </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="driveErrorMessage" class="hidden mt-2">
+                  <p class="text-red-500 text-sm">
+                    <!-- Message will be populated from server response -->
+                  </p>
+                </div>
+
+                <!-- Success Message -->
+                <div id="driveSuccessMessage" class="hidden mt-2">
+                  <p class="text-green-500 text-sm">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <!-- Message will be populated from server response -->
+                  </p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="driveLoadingMessage" class="hidden mt-2">
+                  <p class="text-blue-500 text-sm">
+                    <i class="fas fa-spinner fa-spin mr-1"></i>
+                    Đang kiểm tra quyền truy cập...
+                  </p>
+                </div>
+
                 <p class="text-xs text-gray-500 mt-2">
                   Để tối ưu tốc độ tải ảnh, vui lòng để kích thước ảnh nhỏ vừa
                   đủ để khách hàng của bạn có thể xem và chọn ảnh họ thích. (Gợi
@@ -275,14 +333,14 @@
               <!-- Customer Name -->
               <div>
                 <label
-                  for="customerName"
+                  for="albumCustomerName"
                   class="block text-sm font-medium text-gray-700 mb-2"
                 >
                   <span class="text-red-500">*</span> Tên khách hàng
                 </label>
                 <input
                   type="text"
-                  id="customerName"
+                  id="albumCustomerName"
                   name="customerName"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
@@ -433,6 +491,7 @@
               </button>
               <button
                 type="submit"
+                id="submitBtn"
                 class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Tạo ngay

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${album.name} + ' - Photo Album'">Album View</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet" />
+    <script th:src="@{/js/admin/album-view.js}"></script>
+    <script th:src="@{/js/notification.js}"></script>
+  </head>
+  <body class="bg-gray-50" th:data-album-id="${album.id}">
+    <!-- Album Data for JavaScript -->
+    <script th:inline="javascript">
+      window.albumData = {
+        id: /*[[${album.id}]]*/ "",
+        name: /*[[${album.name}]]*/ "",
+        password: /*[[${album.password}]]*/ "",
+        customer_name: /*[[${album.customer_name}]]*/ "",
+        allowComment: /*[[${album.allowComment}]]*/ false,
+        allowDownload: /*[[${album.allowDownload}]]*/ false,
+      };
+    </script>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-4">
+            <a
+              href="/admin/albums"
+              class="text-gray-600 hover:text-gray-900 flex items-center"
+            >
+              <i class="fas fa-arrow-left mr-2"></i>
+              Quay lại
+            </a>
+            <div class="h-6 w-px bg-gray-300"></div>
+            <h1
+              class="text-lg font-semibold text-gray-900"
+              th:text="${album.name}"
+            >
+              Album Name
+            </h1>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <!-- Selection Counter -->
+            <div
+              id="selectionCounter"
+              class="hidden bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+            >
+              <span id="selectionCount">0</span> ảnh đã chọn
+            </div>
+
+            <!-- Action Buttons -->
+            <button
+              class="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Chia sẻ album"
+              onclick="openShareModal()"
+            >
+              <i class="fas fa-share-alt"></i>
+            </button>
+            <div class="relative">
+              <button
+                class="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                onclick="toggleAlbumMenu()"
+                title="Tùy chọn"
+              >
+                <i class="fas fa-ellipsis-h"></i>
+              </button>
+
+              <!-- Album Menu Dropdown -->
+              <div
+                id="albumMenu"
+                class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+              >
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  data-action="edit"
+                >
+                  <i class="fas fa-edit mr-3"></i>
+                  Chỉnh sửa album
+                </button>
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  onclick="openDownloadModal()"
+                >
+                  <i class="fas fa-download mr-3"></i>
+                  Tải về
+                </button>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+                  data-action="delete"
+                >
+                  <i class="fas fa-trash mr-3"></i>
+                  Xóa album
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Album Cover Section -->
+      <div class="relative">
+        <div
+          class="aspect-video rounded-t-xl overflow-hidden relative bg-cover bg-center bg-no-repeat"
+          th:style="${album.coverPhotoUrl != null} ? 'background-image: url(' + ${album.coverPhotoUrl} + ')' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
+        >
+          <!-- Overlay -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"
+          ></div>
+
+          <!-- Album Info -->
+          <div class="absolute bottom-0 left-0 right-0 p-8 text-white">
+            <h1 class="text-4xl font-bold mb-2" th:text="${album.name}">
+              Album Name
+            </h1>
+            <p
+              class="text-lg opacity-90 mb-4"
+              th:text="'Khách hàng: ' + ${album.customer_name}"
+            >
+              Customer Name
+            </p>
+
+            <!-- Album Stats -->
+            <div class="flex items-center">
+              <i class="fas fa-calendar mr-2"></i>
+              <span
+                class="text-sm"
+                th:text="${#temporals.format(album.createdAt, 'dd/MM/yyyy')}"
+                >Ngày tạo</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Album Stats Card -->
+      <div
+        class="flex items-center justify-between bg-white p-4 border-b border-gray-200"
+      >
+        <!-- Left side - Stats -->
+        <div class="flex items-center space-x-4">
+          <!-- Total Photos -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors bg-blue-500"
+            data-type="all"
+          >
+            <i class="fas fa-images text-sm text-white mr-1"></i>
+            <span
+              class="text-sm font-medium text-white"
+              th:text="${photos.size()}"
+              >0</span
+            >
+          </div>
+
+          <!-- Favorites -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+            data-type="favorites"
+          >
+            <i class="far fa-heart text-sm text-gray-700 mr-1"></i>
+            <span class="text-sm font-medium text-gray-900" id="favorites-count"
+              >0</span
+            >
+          </div>
+
+          <!-- Selected -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+            data-type="selected"
+          >
+            <i class="far fa-star text-sm text-gray-700 mr-1"></i>
+            <span class="text-sm font-medium text-gray-900" id="selected-count"
+              >0</span
+            >
+          </div>
+
+          <!-- Comments -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+            data-type="comments"
+          >
+            <i class="far fa-comment text-sm text-gray-700 mr-1"></i>
+            <span class="text-sm font-medium text-gray-900" id="comments-count"
+              >0</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos Grid -->
+      <div class="bg-white p-6 mt-4">
+        <div
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4"
+          th:if="${photos != null && !photos.isEmpty()}"
+        >
+          <div
+            th:each="photo : ${photos}"
+            class="aspect-square bg-cover bg-center cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden hover:shadow-2xl selected:border-4 selected:border-blue-500 selected:shadow-lg selected:shadow-blue-500/30 group"
+            th:data-bg-image="${photo.thumbnailUrl}"
+            th:data-photo-id="${photo.id}"
+            th:data-favorite="false"
+            th:data-selected="false"
+            th:data-commented="false"
+            onclick="openPhotoModal(this)"
+          >
+            <!-- Action Buttons -->
+            <div
+              class="absolute top-2 transition-opacity flex justify-between items-center w-full px-2"
+            >
+              <!-- Favorite Status (Read-only from client) -->
+              <div
+                class="favorite-status text-red-500 rounded-full size-8 flex items-center justify-center"
+                title="Trạng thái yêu thích từ client (chỉ xem)"
+              >
+                <i class="far fa-heart text-sm"></i>
+              </div>
+
+              <!-- Select Button (Admin can toggle) -->
+              <button
+                class="select-btn cursor-pointer text-yellow-500 hover:text-yellow-600 transition-colors hover:bg-white/80 rounded-full size-8"
+                onclick="event.stopPropagation(); toggleSelect(this)"
+                title="Đánh dấu ảnh đã chọn"
+              >
+                <i class="far fa-star text-sm"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          th:if="${photos == null || photos.isEmpty()}"
+          class="text-center py-12"
+        >
+          <i class="fas fa-images text-gray-300 text-6xl mb-4"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            Chưa có ảnh nào
+          </h3>
+          <p class="text-gray-500">Album này chưa có ảnh nào được thêm vào.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Photo Modal -->
+    <div
+      id="photoModal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden"
+    >
+      <!-- Close Button -->
+      <button
+        id="closeModal"
+        class="absolute top-4 right-4 text-white hover:text-gray-300 z-30 bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Like and Favorite Buttons - Top Left -->
+      <div class="absolute top-4 left-4 z-30 flex items-center space-x-2">
+        <!-- Favorite Status (Read-only from client) -->
+        <div
+          id="modalFavoriteStatus"
+          class="text-white bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+          title="Trạng thái yêu thích từ client (chỉ xem)"
+        >
+          <i class="far fa-heart"></i>
+        </div>
+        <!-- Select Button (Admin can toggle) -->
+        <button
+          id="modalSelectBtn"
+          class="text-white hover:text-yellow-400 transition-colors bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+          title="Đánh dấu ảnh đã chọn"
+        >
+          <i class="far fa-star"></i>
+        </button>
+      </div>
+
+      <!-- Main Image Container -->
+      <div class="relative flex items-center justify-center h-full p-8">
+        <img
+          id="modalImage"
+          src=""
+          alt=""
+          class="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+        />
+        <!-- Comment Display -->
+        <div
+          id="modalComment"
+          class="absolute bottom-14 left-1/2 -translate-x-1/2 bg-black/50 rounded-lg px-4 py-2 max-w-md"
+          style="display: none"
+        >
+          <p class="text-white text-sm" id="modalCommentText"></p>
+        </div>
+      </div>
+
+      <!-- Set Cover Button - Bottom Right -->
+      <button
+        id="modalSetCoverBtn"
+        class="absolute bottom-4 right-4 text-white hover:text-blue-400 transition-colors z-30 bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+        onclick="setAsCoverPhoto()"
+      >
+        <i class="fas fa-image"></i>
+      </button>
+    </div>
+
+    <!-- Download Modal -->
+    <div
+      id="downloadModal"
+      class="fixed inset-0 bg-black/80 bg-opacity-30 backdrop-blur-sm z-50 hidden flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-red-600">Tải về</h3>
+          <button
+            id="closeDownloadModal"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="mb-6">
+          <p class="text-gray-500 text-xs mb-4">
+            Nếu mây bạn đã có sẵn bộ ảnh, hay ưu tiên dùng tính năng Lọc Ảnh
+            Trong Mây
+          </p>
+
+          <div class="space-y-3">
+            <h4 class="font-medium text-gray-900">Lựa chọn tải xuống</h4>
+
+            <!-- All Photos -->
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="downloadOption"
+                value="all"
+                class="w-4 h-4 text-green-600"
+                checked
+              />
+              <span class="text-sm text-gray-700">Tất cả ảnh</span>
+            </label>
+
+            <!-- Recommended Photos -->
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="downloadOption"
+                value="recommended"
+                class="w-4 h-4 text-green-600"
+              />
+              <span class="text-sm text-gray-700">Ảnh được đề xuất</span>
+            </label>
+
+            <!-- Customer Selected Photos -->
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="downloadOption"
+                value="selected"
+                class="w-4 h-4 text-green-600"
+              />
+              <span class="text-sm text-gray-700">Ảnh khách đã chọn</span>
+            </label>
+
+            <!-- Customer Commented Photos -->
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="downloadOption"
+                value="commented"
+                class="w-4 h-4 text-green-600"
+              />
+              <span class="text-sm text-gray-700">Ảnh khách bình luận</span>
+            </label>
+
+            <!-- Tagged Photos -->
+            <label
+              class="flex items-center space-x-3 cursor-pointer opacity-60"
+            >
+              <input
+                type="radio"
+                name="downloadOption"
+                value="tagged"
+                class="w-4 h-4 text-green-600"
+                disabled
+              />
+              <span class="text-sm text-gray-500">Ảnh có gắn thẻ</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Download Button -->
+        <button
+          id="downloadButton"
+          class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+        >
+          <i class="fas fa-download"></i>
+          <span>Tải về</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div
+      id="shareModal"
+      class="fixed inset-0 bg-black/80 bg-opacity-30 backdrop-blur-sm z-50 hidden flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg p-6 w-[600px] max-w-[90vw] mx-4">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-semibold text-red-600">Chia sẻ</h3>
+          <button
+            id="closeShareModal"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="space-y-6">
+          <!-- Share Link for Customer Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Đường dẫn chia sẻ cho khách hàng chọn ảnh
+            </label>
+            <div class="flex items-center space-x-2">
+              <input
+                type="text"
+                id="customerSelectionLink"
+                readonly
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                value="https://shotpik.com/albums/9ff087ae-041f-46b1"
+              />
+              <button
+                id="copyCustomerSelectionLink"
+                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors flex items-center space-x-2"
+              >
+                <i class="fas fa-copy"></i>
+                <span>Sao chép</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Share Link for Viewers (View Only) -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Đường dẫn chia sẻ cho người xem (chỉ xem)
+            </label>
+            <div class="flex items-center space-x-2">
+              <input
+                type="text"
+                id="viewerLink"
+                readonly
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                value="https://shotpik.com/show/albums/9ff087ae-04"
+              />
+              <button
+                id="copyViewerLink"
+                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors flex items-center space-x-2"
+              >
+                <i class="fas fa-copy"></i>
+                <span>Sao chép</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- QR Codes Section -->
+          <div class="grid grid-cols-2 gap-6">
+            <!-- QR Code for Customer Selection -->
+            <div class="text-center">
+              <div class="bg-gray-200 rounded-lg p-4 mb-3">
+                <div
+                  class="w-32 h-32 bg-white rounded mx-auto flex items-center justify-center"
+                >
+                  <i class="fas fa-qrcode text-4xl text-gray-400"></i>
+                </div>
+              </div>
+              <p class="text-sm font-medium text-gray-700 mb-2">
+                Mã QR khách chọn ảnh
+              </p>
+              <button
+                id="downloadCustomerQR"
+                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors flex items-center space-x-2 mx-auto"
+              >
+                <i class="fas fa-download"></i>
+                <span>Tải về [.PNG]</span>
+              </button>
+            </div>
+
+            <!-- QR Code for Album Viewing -->
+            <div class="text-center">
+              <div class="bg-gray-200 rounded-lg p-4 mb-3">
+                <div
+                  class="w-32 h-32 bg-white rounded mx-auto flex items-center justify-center"
+                >
+                  <i class="fas fa-qrcode text-4xl text-gray-400"></i>
+                </div>
+              </div>
+              <p class="text-sm font-medium text-gray-700 mb-2">
+                Mã QR khách xem album
+              </p>
+              <button
+                id="downloadViewerQR"
+                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors flex items-center space-x-2 mx-auto"
+              >
+                <i class="fas fa-download"></i>
+                <span>Tải về [.PNG]</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

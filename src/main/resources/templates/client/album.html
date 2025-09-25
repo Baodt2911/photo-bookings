@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${album.name} + ' - Album'">Album - PhotoBooking</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link th:href="@{/css/tailwind.css}" rel="stylesheet" />
+    <script th:src="@{/js/notification.js}"></script>
+    <script th:src="@{/js/client/album.js}"></script>
+  </head>
+  <body class="bg-gray-50" th:data-album-id="${album.id}">
+    <!-- Password Modal -->
+    <div
+      id="passwordModal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <div class="text-center mb-6">
+          <i class="fas fa-lock text-4xl text-red-600 mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-900">Album được bảo vệ</h3>
+          <p class="text-gray-600 mt-2">Vui lòng nhập mật khẩu để xem album</p>
+        </div>
+
+        <form id="passwordForm">
+          <div class="mb-4">
+            <input
+              type="password"
+              id="albumPassword"
+              placeholder="Nhập mật khẩu album"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div class="flex justify-center">
+            <button
+              type="submit"
+              id="submitPassword"
+              class="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Xác nhận
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Cover Section -->
+    <div
+      class="min-h-screen flex flex-col justify-center items-center text-white relative bg-cover bg-center bg-no-repeat"
+      th:style="${album.coverPhotoUrl != null} ? 'background-image: url(' + ${album.coverPhotoUrl} + ')' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)'"
+    >
+      <!-- Overlay -->
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"
+      ></div>
+
+      <!-- Content -->
+      <div class="relative z-10 text-center">
+        <!-- Album Title -->
+        <h1
+          class="text-4xl md:text-6xl font-bold text-center mb-6"
+          th:text="${album.name}"
+        >
+          Album Title
+        </h1>
+
+        <!-- View Album Button -->
+        <button
+          id="viewAlbumBtn"
+          class="px-8 py-4 border-2 border-white rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold text-lg mb-4"
+        >
+          Xem Album
+        </button>
+
+        <!-- Customer Name -->
+        <p
+          class="text-lg opacity-90"
+          th:text="'Khách hàng: ' + ${album.customer_name}"
+        >
+          Customer Name
+        </p>
+      </div>
+    </div>
+
+    <!-- White Separator -->
+    <div class="h-4 bg-white"></div>
+
+    <!-- Album Content -->
+    <div id="albumContent" class="bg-gray-50 min-h-screen">
+      <!-- Album Stats Card -->
+      <div
+        class="flex items-center justify-between bg-white p-4 border-b border-gray-200"
+      >
+        <!-- Left side - Stats -->
+        <div class="flex items-center space-x-4">
+          <!-- Total Photos -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors bg-blue-500"
+            data-type="all"
+          >
+            <i class="fas fa-images text-sm text-white mr-1"></i>
+            <span
+              class="text-sm font-medium text-white"
+              th:text="${photos.size()}"
+              >0</span
+            >
+          </div>
+
+          <!-- Favorites -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+            data-type="favorites"
+          >
+            <i class="far fa-heart text-sm text-gray-700 mr-1"></i>
+            <span class="text-sm font-medium text-gray-900" id="favorites-count"
+              >0</span
+            >
+          </div>
+
+          <!-- Selected -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+            data-type="selected"
+          >
+            <i class="far fa-star text-sm text-gray-700 mr-1"></i>
+            <span class="text-sm font-medium text-gray-900" id="selected-count"
+              >0</span
+            >
+          </div>
+
+          <!-- Comments -->
+          <div
+            class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+            data-type="comments"
+          >
+            <i class="far fa-comment text-sm text-gray-700 mr-1"></i>
+            <span class="text-sm font-medium text-gray-900" id="comments-count"
+              >0</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos Grid -->
+      <div class="bg-white p-6 mt-4">
+        <div
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4"
+          th:if="${photos != null && !photos.isEmpty()}"
+        >
+          <div
+            th:each="photo : ${photos}"
+            class="photo-item aspect-square bg-cover bg-center cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden hover:shadow-2xl group"
+            th:data-bg-image="${photo.thumbnailUrl ?: ''}"
+            th:data-photo-id="${photo.id}"
+            th:data-favorite="false"
+            th:data-selected="false"
+            th:data-commented="false"
+            th:style="${photo.thumbnailUrl != null} ? 'background-image: url(' + ${photo.thumbnailUrl} + ')' : 'background-color: #f3f4f6'"
+          >
+            <!-- Placeholder content when no image loaded -->
+            <div
+              th:if="${photo.thumbnailUrl == null}"
+              class="placeholder-content absolute inset-0 flex items-center justify-center bg-gray-200"
+            >
+              <div class="text-center text-gray-500">
+                <i class="fas fa-lock text-2xl mb-2"></i>
+                <p class="text-xs">Nhập mật khẩu để xem</p>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div
+              class="action-buttons absolute top-2 transition-opacity flex justify-between items-center w-full px-2"
+              th:style="${photo.thumbnailUrl == null} ? 'display: none' : 'display: flex'"
+            >
+              <!-- Favorite Button (Client can toggle) -->
+              <button
+                class="favorite-btn cursor-pointer text-red-500 hover:text-red-600 transition-colors hover:bg-white/80 rounded-full size-8 flex items-center justify-center"
+                title="Yêu thích"
+              >
+                <i class="far fa-heart text-sm"></i>
+              </button>
+
+              <!-- Comment Button (Client can toggle) -->
+              <button
+                class="comment-btn cursor-pointer text-green-500 hover:text-green-600 transition-colors hover:bg-white/80 rounded-full size-8 flex items-center justify-center"
+                title="Bình luận"
+                th:style="${album.allowComment == false} ? 'display: none' : 'display: flex'"
+              >
+                <i class="far fa-comment text-sm"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          th:if="${photos == null || photos.isEmpty()}"
+          class="text-center py-12"
+        >
+          <i class="fas fa-images text-gray-300 text-6xl mb-4"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            Chưa có ảnh nào
+          </h3>
+          <p class="text-gray-500">Album này chưa có ảnh nào được thêm vào.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div
+      id="photoModal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden"
+    >
+      <!-- Close Button -->
+      <button
+        id="closeModal"
+        class="absolute top-4 right-4 text-white hover:text-gray-300 z-30 bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Like and Favorite Buttons - Top Left -->
+      <div class="absolute top-4 left-4 z-30 flex items-center space-x-2">
+        <!-- Favorite Button (Client can toggle) -->
+        <button
+          id="modalFavoriteBtn"
+          class="text-white hover:text-red-400 transition-colors bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+          title="Yêu thích ảnh"
+        >
+          <i class="far fa-heart"></i>
+        </button>
+        <!-- Comment Button -->
+        <button
+          id="modalCommentBtn"
+          class="text-white hover:text-green-400 transition-colors bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+          title="Bình luận"
+          th:style="${album.allowComment == false} ? 'display: none' : 'display: flex'"
+        >
+          <i class="far fa-comment"></i>
+        </button>
+      </div>
+
+      <!-- Main Image Container -->
+      <div class="relative flex items-center justify-center h-full p-8">
+        <img
+          id="modalImage"
+          src=""
+          alt=""
+          class="max-w-full max-h-full object-contain"
+        />
+        <!-- Comment Display -->
+        <div
+          id="modalComment"
+          class="absolute bottom-14 left-1/2 -translate-x-1/2 bg-black/50 rounded-lg px-4 py-2 max-w-md"
+          style="display: none"
+        >
+          <p class="text-white text-sm" id="modalCommentText"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div
+      id="commentModal"
+      class="fixed inset-0 bg-black/80 bg-opacity-30 backdrop-blur-sm z-50 hidden flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">Bình luận</h3>
+          <button
+            id="closeCommentModal"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="mb-4">
+          <textarea
+            id="commentText"
+            placeholder="Nhập bình luận của bạn..."
+            class="w-full px-3 py-2 border border-gray-300 outline-none rounded-lg resize-none"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="flex space-x-3">
+          <button
+            id="cancelComment"
+            class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            id="submitComment"
+            class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Gửi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script th:inline="javascript">
+      // Album data from server - only essential fields to avoid LazyInitializationException
+      window.albumData = {
+        id: /*[[${album.id}]]*/ null,
+        name: /*[[${album.name}]]*/ "",
+        customerName: /*[[${album.customer_name}]]*/ "",
+        driveFolderLink: /*[[${album.driveFolderLink}]]*/ "",
+        allowDownload: /*[[${album.allowDownload}]]*/ false,
+        allowComment: /*[[${album.allowComment}]]*/ false,
+        limitSelection: /*[[${album.limitSelection}]]*/ null,
+        coverPhotoId: /*[[${album.coverPhotoId}]]*/ null,
+      };
+      window.albumMode = /*[[${albumMode}]]*/ "view"; // 'view' or 'select'
+      window.hasPassword = /*[[${album.password != null}]]*/ false;
+    </script>
+  </body>
+</html>
