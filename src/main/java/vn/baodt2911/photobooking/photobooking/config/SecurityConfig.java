@@ -28,7 +28,11 @@ public class SecurityConfig {
                     "/auth/logout",            // Đăng xuất
                     "/admin/login",            // Trang đăng nhập admin
                     "/admin/register",         // Trang đăng ký admin
-                    "/",                       // Trang chủ
+                    "/test/**",                       // Trang chủ
+                    "/album/**",               // Public album pages
+                    "/show/**",                // Public show pages
+                    "/api/albums/**",          // Public album APIs
+                    "/api/photos/**",          // Public photo APIs
                     "/css/**",                 // Static CSS files
                     "/js/**",                  // Static JS files
                     "/images/**",              // Static images
