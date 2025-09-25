@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AlbumCreateRequestDTO {
     private String name;
+    private String customerName;
     private String driveFolderLink;
     private String password;
     private Boolean allowDownload;

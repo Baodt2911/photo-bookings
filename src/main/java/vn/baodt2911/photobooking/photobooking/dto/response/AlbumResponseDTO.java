@@ -13,11 +13,13 @@ import java.util.UUID;
 public class AlbumResponseDTO {
     private UUID id;
     private String name;
+    private String customerName;
     private String driveFolderLink;
     private String password;
     private Boolean allowDownload;
     private Boolean allowComment;
     private Integer limitSelection;
+    private UUID coverPhotoId;
     private String createdByName;
     private Instant createdAt;
     private Instant updatedAt;

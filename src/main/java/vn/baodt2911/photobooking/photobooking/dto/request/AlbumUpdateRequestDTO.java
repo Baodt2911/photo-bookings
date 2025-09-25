@@ -12,6 +12,7 @@ import java.util.UUID;
 public class AlbumUpdateRequestDTO {
     private UUID id;
     private String name;
+    private String customerName;
     private String driveFolderLink;
     private String password;
     private Boolean allowDownload;

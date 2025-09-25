@@ -5,6 +5,7 @@ import vn.baodt2911.photobooking.photobooking.dto.request.*;
 import vn.baodt2911.photobooking.photobooking.dto.response.*;
 import vn.baodt2911.photobooking.photobooking.entity.*;
 import vn.baodt2911.photobooking.photobooking.entity.Package;
+import vn.baodt2911.photobooking.photobooking.util.PasswordUtil;
 
 @Component
 public class EntityMapper {
@@ -110,12 +111,23 @@ public class EntityMapper {
         AlbumResponseDTO dto = new AlbumResponseDTO();
         dto.setId(album.getId());
         dto.setName(album.getName());
+        dto.setCustomerName(album.getCustomer_name());
         dto.setDriveFolderLink(album.getDriveFolderLink());
-        dto.setPassword(album.getPassword());
+        // Không trả về password để bảo mật
+        dto.setPassword(null);
         dto.setAllowDownload(album.getAllowDownload());
         dto.setAllowComment(album.getAllowComment());
         dto.setLimitSelection(album.getLimitSelection());
-        dto.setCreatedByName(album.getCreatedBy() != null ? album.getCreatedBy().getName() : null);
+        dto.setCoverPhotoId(album.getCoverPhotoId());
+        
+        // Safely handle createdBy user to avoid LazyInitializationException
+        try {
+            dto.setCreatedByName(album.getCreatedBy() != null ? album.getCreatedBy().getName() : null);
+        } catch (Exception e) {
+            // If there's a lazy loading issue, set to null
+            dto.setCreatedByName(null);
+        }
+        
         dto.setCreatedAt(album.getCreatedAt());
         dto.setUpdatedAt(album.getUpdatedAt());
         return dto;
@@ -126,8 +138,14 @@ public class EntityMapper {
         
         Album entity = new Album();
         entity.setName(dto.getName());
+        entity.setCustomer_name(dto.getCustomerName());
         entity.setDriveFolderLink(dto.getDriveFolderLink());
-        entity.setPassword(dto.getPassword());
+        
+        // Hash password nếu có
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            entity.setPassword(PasswordUtil.hashPassword(dto.getPassword()));
+        }
+        
         entity.setAllowDownload(dto.getAllowDownload());
         entity.setAllowComment(dto.getAllowComment());
         entity.setLimitSelection(dto.getLimitSelection());
@@ -138,8 +156,16 @@ public class EntityMapper {
         if (entity == null || dto == null) return;
         
         entity.setName(dto.getName());
+        entity.setCustomer_name(dto.getCustomerName());
         entity.setDriveFolderLink(dto.getDriveFolderLink());
-        entity.setPassword(dto.getPassword());
+        
+        // Hash password mới mỗi lần cập nhật
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            entity.setPassword(PasswordUtil.hashPassword(dto.getPassword()));
+        } else {
+            entity.setPassword(null);
+        }
+        
         entity.setAllowDownload(dto.getAllowDownload());
         entity.setAllowComment(dto.getAllowComment());
         entity.setLimitSelection(dto.getLimitSelection());
