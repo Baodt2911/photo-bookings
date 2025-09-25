@@ -43,6 +43,7 @@ public class AuthController {
             Date accessExpirationDate = new Date(System.currentTimeMillis() + accessExpiration);
             long accessExpirationDateTime = accessExpirationDate.getTime();
 
+            
             Cookie accessTokenCookie = new Cookie("access_token", accessToken);
             accessTokenCookie.setHttpOnly(true);
             accessTokenCookie.setSecure(false);
