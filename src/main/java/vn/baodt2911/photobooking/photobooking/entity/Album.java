@@ -56,7 +56,20 @@ public class Album {
     private Integer limitSelection;
 
     @Column(name = "cover_photo_id")
-    private Long coverPhotoId;
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private UUID coverPhotoId;
+
+    @Transient
+    private String coverPhotoUrl;
+    
+    @Transient
+    private String createdByName;
+    
+    @Transient
+    private Long favoriteCount;
+    
+    @Transient
+    private Long commentCount;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
